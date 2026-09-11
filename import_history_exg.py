@@ -11,7 +11,7 @@ if __name__ == "__main__":
     }
     infos = []
     for key, val in exg_file.items():
-        exg_id = val["EXG_ID"]
+        exg_info_id = val["EXG_ID"]
         file_path = val["file"]
         if os.path.exists(file_path):
             df = pd.read_csv(file_path)
@@ -27,17 +27,17 @@ if __name__ == "__main__":
                 rate = float(Decimal(row['Close']).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
                 # rate = float(row['Close'])
                 infos.append({
-                    "id": int("{}{}".format(rp, str(exg_id).zfill(2))),
+                    "id": int("{}{}".format(rp, str(exg_info_id).zfill(2))),
                     "exg_date": dt.replace("/", "-"),
-                    "exg_id": exg_id,
-                    "exg_number": rate
+                    "exg_info_id": exg_info_id,
+                    "exg_rate": rate
                 })
-    cmd1 = "INSERT INTO exg_data (id, exg_date, exg_id, exg_number) VALUES (%s, %s, %s, %s)"
+    cmd1 = "INSERT INTO exg_data (id, exg_date, exg_info_id, exg_rate) VALUES (%s, %s, %s, %s)"
     cmd2 = "SELECT * FROM exg_data WHERE id = %s"
     connectDB = Connect_DB()
     connectDB.connection()
     for info in infos:
-        params1 = (info['id'], info['exg_date'], info['exg_id'], info['exg_number'])
+        params1 = (info['id'], info['exg_date'], info['exg_info_id'], info['exg_rate'])
         params2 = (info['id'],)
         result = connectDB.selectOne(cmd2, params2)
         if (result == None or len(result) == 0):

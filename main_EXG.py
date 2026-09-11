@@ -3,7 +3,7 @@ import requests
 from utils.MySQLDB import Connect_DB
 from decimal import Decimal, ROUND_HALF_UP
 
-def process_forex_data(exg_id, api_response):
+def process_forex_data(exg_info_id, api_response):
     infos = []
     infos.clear()
     inner_data = api_response['data']
@@ -21,25 +21,25 @@ def process_forex_data(exg_id, api_response):
         y, m, d = dt.split('-')
         price = float(Decimal(close).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)) # close
         infos.append({
-            "id": int("{}{}{}{}".format(y, m, d, str(exg_id).zfill(2))),
+            "id": int("{}{}{}{}".format(y, m, d, str(exg_info_id).zfill(2))),
             "exg_date": "{}-{}-{}".format(y, m, d),
-            "exg_id": exg_id,
-            "exg_number": price # close
+            "exg_info_id": exg_info_id,
+            "exg_rate": price # close
         })
         # print(f"日期: {date_str} | 收盤價 'c': {close}")
     return infos
 
 if __name__ == "__main__":
-    cmd1 = "INSERT INTO exg_data (id, exg_date, exg_id, exg_number) VALUES (%s, %s, %s, %s)"
+    cmd1 = "INSERT INTO exg_data (id, exg_date, exg_info_id, exg_rate) VALUES (%s, %s, %s, %s)"
     cmd2 = "SELECT * FROM exg_data WHERE id = %s"
-    cmd3 = "UPDATE exg_data SET exg_number = %s WHERE id = %s"
+    cmd3 = "UPDATE exg_data SET exg_rate = %s WHERE id = %s"
 
     # start
     today_date = date.today()
     today_utc_timestamp = datetime.combine(today_date, datetime.min.time().replace(tzinfo=timezone.utc)).timestamp()
 
     # end
-    days_ago_7 = date.today() - timedelta(days=7)
+    days_ago_7 = date.today() - timedelta(days=12)
     timestamp_7_days_ago_local = datetime.combine(days_ago_7, datetime.min.time()).timestamp()
 
     usd_url = 'https://ws.api.cnyes.com/ws/api/v1/charting/history?resolution=D&symbol=FX:USDTWD:FOREX&from={}&to={}&quote=1'.format(str(int(today_utc_timestamp)), str(int(timestamp_7_days_ago_local)))
@@ -58,15 +58,15 @@ if __name__ == "__main__":
         json_data = get_info.json()
         infos = process_forex_data(exg_id, json_data)
         for info in infos:
-            params1 = (info['id'], info['exg_date'], info['exg_id'], info['exg_number'])
+            params1 = (info['id'], info['exg_date'], info['exg_info_id'], info['exg_rate'])
             params2 = (info['id'],)
-            params3 = (info['exg_number'], info['id'],)
+            params3 = (info['exg_rate'], info['id'],)
             result = connectDB.selectOne(cmd2, params2)
             if (result == None or len(result) == 0):
                 connectDB.execute(cmd1, params1)
                 print('[insert]: ', info)
             else:
-                if (info['exg_number'] == result[3]):
+                if (info['exg_rate'] == result[3]):
                     print('[exist]: ', info)
                 else:
                     connectDB.execute(cmd3, params3)
