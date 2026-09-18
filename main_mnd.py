@@ -7,6 +7,7 @@ from utils.MySQLDB import Connect_DB
 if __name__ == "__main__":
     main_url = "https://www.mnd.gov.tw/news/plaactlist"
     log_message, driver = get_chrome_driver(show=False)
+    print(log_message)
     cmd1 = "INSERT INTO mnd_data (id, date, url, fighter, warship, officialship, \
         balloon, missile, enter_fighter, missile_date, content) VALUES (%s, %s, %s, %s, \
             %s, %s, %s, %s, %s, %s, %s)"
@@ -14,11 +15,11 @@ if __name__ == "__main__":
     # cmd3 = "UPDATE mnd_data SET exg_rate = %s WHERE id = %s"
     connectDB = Connect_DB()
     connectDB.connection()
-    for page in range(1, 6):
-        if page != 1:
-            page_url = "{}/{}".format(main_url, page)
-        else:
-            page_url = main_url
+    for page in range(1, 2):
+        # if page != 1:
+        page_url = "{}/{}".format(main_url, page)
+        # else:
+        #     page_url = main_url
         print(page_url)
         driver.get(page_url)
         driver.implicitly_wait(10)
@@ -49,7 +50,7 @@ if __name__ == "__main__":
                 # id
                 id = "{}{}{}".format(year, month.zfill(2), day.zfill(2))
                 # 共機
-                fighter_pattern = re.findall(r'共機(\d+)架次', text)
+                fighter_pattern = re.findall(r'共機\s*(\d+)\s*架次?', text)
                 fighter_number = 0
                 if fighter_pattern:
                     fighter_number = fighter_pattern[0]
@@ -94,5 +95,6 @@ if __name__ == "__main__":
                     print("{}\n共機{}架次(逾越共{}架次)\n共艦{}艘\n公務船{}艘\n氣球{}顆\n飛彈{}顆\n====END====".format(\
                                                             id, fighter_number, enter_fighter_number, \
                                                             warship_number, officialship_number, balloon_number, missile_number))
+                    break
     connectDB.disconnect()
     driver.quit()

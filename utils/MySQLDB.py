@@ -34,6 +34,11 @@ class Connect_DB():
         result = self.cursor.fetchone()
         return result
 
+    def selectAll(self, cmd):
+        self.cursor.execute(cmd)
+        results = self.cursor.fetchall()
+        return results
+
     def execute(self, cmd, params):
         self.cursor.execute(cmd, params)
         self.connect.commit()
