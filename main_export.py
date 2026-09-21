@@ -5,7 +5,7 @@ import json
 if __name__ == "__main__":
     # 選取近7筆
     cmd = "SELECT id, date, fighter, warship, officialship, balloon, missile, \
-        enter_fighter, missile_date FROM mnd_data order by date desc limit 7"
+        enter_fighter, missile_date FROM mnd_data order by date desc limit 365"
     params = {}
     connectDB = Connect_DB()
     connectDB.connection()
